@@ -1,41 +1,51 @@
-# Deployment Guide (Render.com)
+# Manual Deployment Guide (Render Free Tier)
 
-This project is configured for easy deployment on Render using the `render.yaml` Blueprint.
+Since Blueprints can sometimes trigger paid plan warnings, here is the robust **Manual Method** to deploy completely for free.
 
-## Steps
+## Part 1: Backend Deployment (Web Service)
 
-1.  **Push to GitHub**: Ensure your latest code (with `render.yaml`) is pushed to your GitHub repository.
-2.  **Log in to Render**: Go to [dashboard.render.com](https://dashboard.render.com/).
-3.  **Create Blueprint**:
-    *   Click **New+** -> **Blueprint**.
-    *   Connect your GitHub repository.
-    *   Give it a name.
-4.  **Configure Environment**:
-    *   Render will detect the `render.yaml` file.
-    *   It might ask you for `MONGO_URI`. Paste the same connection string you used locally (from `.env`).
-    *   **Note**: `CLIENT_URL` and `VITE_SOCKET_URL` are automatically handled by the Blueprint magic!
-5.  **Apply**: Click **Apply Setup**.
+1.  Log in to [Render Dashboard](https://dashboard.render.com/).
+2.  Click **New +** and select **Web Service**.
+3.  **Connect Repository**: Select `LivePollingSystem`.
+4.  **Configure Instance**:
+    *   **Name**: `live-polling-server` (or similar)
+    *   **Region**: Choose closest to you (e.g., Singapore, Oregon).
+    *   **Branch**: `main`
+    *   **Root Directory**: `server` (Important!)
+    *   **Runtime**: `Node`
+    *   **Build Command**: `npm install`
+    *   **Start Command**: `node index.js`
+    *   **Instance Type**: `Free`
+5.  **Environment Variables** (Advanced -> Add Environment Variable):
+    *   `MONGO_URI`: *[Paste your Atlas connection string]*
+    *   `PORT`: `5000` (Optional, Render sets `PORT` automatically, but good to set).
+    *   `CLIENT_URL`: `https://live-polling-client.onrender.com` (Note: You won't have this URL yet. temporarily put `*` or come back and update it after Part 2).
+6.  Click **Create Web Service**.
+7.  **Wait**: It will build. Once "Live", copy the URL at the top (e.g., `https://live-polling-server.onrender.com`).
 
-## Manual Setup (If Blueprint fails)
+## Part 2: Frontend Deployment (Static Site)
 
-If you prefer manual control:
+1.  Go back to Dashboard.
+2.  Click **New +** and select **Static Site**.
+3.  **Connect Repository**: Select `LivePollingSystem`.
+4.  **Configure Instance**:
+    *   **Name**: `live-polling-client`
+    *   **Branch**: `main`
+    *   **Root Directory**: `client` (Important!)
+    *   **Build Command**: `npm install && npm run build`
+    *   **Publish Directory**: `dist`
+    *   **Instance Type**: `Free`
+5.  **Environment Variables**:
+    *   `VITE_SOCKET_URL`: *[Paste the Backend Server URL from Part 1]* (e.g., `https://live-polling-server.onrender.com`).
+6.  Click **Create Static Site**.
 
-### 1. Backend Service
-- Create a **Web Service**.
-- **Root**: `server`
-- **Build**: `npm install`
-- **Start**: `node index.js`
-- **Env Vars**:
-    - `MONGO_URI`: (Your Atlas URL)
-    - `CLIENT_URL`: (Add this *after* deploying the frontend, or use `*` temporarily)
+## Part 3: Final Link
 
-### 2. Frontend Site
-- Create a **Static Site**.
-- **Root**: `client`
-- **Build**: `npm install && npm run build`
-- **Publish**: `dist`
-- **Env Vars**:
-    - `VITE_SOCKET_URL`: (The URL of your deployed Backend Service, e.g., `https://live-polling-server.onrender.com`)
+1.  Once the Frontend is live, copy its URL.
+2.  Go back to your **Backend Service** -> **Environment**.
+3.  Edit `CLIENT_URL` to be your actual frontend URL (no trailing slash).
+4.  Save Changes (keeps CORS secure).
 
-## Docker?
-You asked about Docker. For this project, **Docker is not required** and native deployment (as above) is simpler and faster. However, if you *really* want to use Docker, you would need to create a `Dockerfile` for the server, but Render's native Node.js environment is optimized for this exactly.
+## Troubleshooting
+- **Socket Error**: If the frontend says "Disconnected", check that `VITE_SOCKET_URL` in the Frontend Config matches your Backend URL exactly (including `https://`).
+- **CORS Error**: If backend logs show CORS issues, check `CLIENT_URL` in Backend Config.
