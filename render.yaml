@@ -11,7 +11,7 @@ services:
         fromService:
           type: web
           name: live-polling-client
-          property: url
+          property: host
       - key: MONGO_URI
         sync: false # User must input this manually in Dashboard
     plan: free
@@ -28,5 +28,5 @@ services:
         fromService:
           type: web
           name: live-polling-server
-          property: url
+          property: host
     plan: free

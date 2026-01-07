@@ -3,7 +3,15 @@ import io from 'socket.io-client';
 
 const SocketContext = createContext();
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const getSocketUrl = () => {
+    const url = import.meta.env.VITE_SOCKET_URL;
+    if (url) {
+        return url.startsWith('http') ? url : `https://${url}`;
+    }
+    return 'http://localhost:5000';
+}
+
+const SOCKET_URL = getSocketUrl();
 
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
